@@ -5,19 +5,26 @@ import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.util.CollectionFactory;
 import edu.stanford.nlp.util.CoreMap;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Analyse a corpus to extract candidate grammar rules
  */
 public class CorpusAnalyser {
     public static void main(String[] args) {
-        savePOSTagsToFile("build/classes/main/sherlock.txt", "POSTaggedSherlock");
+
+        String inputPath = "build/classes/main/sherlock.txt";
+        String POSPatternsOutputPath = "POSTaggedSherlock";
+        String sortedPOSPatternsOutputPath = POSPatternsOutputPath + "-sorted";
+        savePOSTagsToFile(inputPath, POSPatternsOutputPath);
+        LinkedList<String> sortedPOSPatterns = getSortedLinesFromFile(POSPatternsOutputPath);
+        writeLineCollectionToFile(sortedPOSPatterns,sortedPOSPatternsOutputPath);
     }
 
     public static void savePOSTagsToFile(String inputPath, String outputPath) {
@@ -58,4 +65,29 @@ public class CorpusAnalyser {
         return stringBuilder.toString();
     }
 
+    public static LinkedList<String> getSortedLinesFromFile(String inputPath) {
+        LinkedList<String> lines = new LinkedList<>();
+        try {
+            BufferedReader bufferedReader = IOUtils.readerFromString(inputPath);
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                lines.push(line);
+            }
+            bufferedReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        lines.sort(null);
+        return lines;
+    }
+
+    public static void writeLineCollectionToFile(Collection<String> lines, String outputPath) {
+        try {
+            PrintWriter writer = IOUtils.getPrintWriter(outputPath);
+            writer.print(String.join("\n",lines));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

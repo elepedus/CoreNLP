@@ -10,7 +10,6 @@ import edu.stanford.nlp.util.CoreMap;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.Buffer;
 import java.util.*;
 
 /**
@@ -27,7 +26,7 @@ public class CorpusAnalyser {
         writePOSTagsToFile(inputPath, POSPatternsOutputPath);
         LinkedList<String> sortedPOSPatterns = getSortedLinesFromFile(POSPatternsOutputPath);
         writeLineCollectionToFile(sortedPOSPatterns, sortedPOSPatternsOutputPath);
-        HashMap<String, Integer> bigrams = getPOSBigramsFromFile(POSPatternsOutputPath);
+        LinkedList<Bigram> bigrams = getPOSBigramsFromPOSPatternsFile(POSPatternsOutputPath);
         writePOSBigramsToFile(bigrams, bigramOutputPath);
     }
 
@@ -95,34 +94,34 @@ public class CorpusAnalyser {
         }
     }
 
-    public static void writePOSBigramsToFile(HashMap<String, Integer> bigrams, String outputPath) {
+    public static LinkedList<Bigram> getPOSBigramsFromPOSPatternsFile(String inputPath) {
+        String corpus = IOUtils.slurpFileNoExceptions(inputPath);
+        LinkedList<Bigram> bigrams = getPOSBigrams(corpus);
+        Collections.sort(bigrams,Collections.reverseOrder());
+        return bigrams;
+    }
+
+    public static void writePOSBigramsToFile(LinkedList<Bigram> bigrams, String outputPath) {
         LinkedList<String> lines = new LinkedList<>();
-        for (String bigram : bigrams.keySet()) {
-            lines.push(bigrams.get(bigram) + " " + bigram);
+        for (Bigram bigram : bigrams) {
+            lines.push(bigram.getFirst() + " " + bigram.getSecond() + " " + bigram.getFrequency());
         }
-        lines.sort(null);
         writeLineCollectionToFile(lines, outputPath);
     }
 
-    public static HashMap<String, Integer> getPOSBigramsFromFile(String inputPath) {
-        String corpus = IOUtils.slurpFileNoExceptions(inputPath);
-        HashMap<String, Integer> bigrams = getPOSBigrams(corpus);
-        return bigrams;
-    }
-
-    public static HashMap<String, Integer> getPOSBigrams(String corpus) {
-        HashMap<String, Integer> bigrams = new HashMap<>();
-        LinkedList<String> tags = new LinkedList<>(Arrays.asList(corpus.split(" |\n")));
-        while (tags.size() > 1) {
-            String currentTag = tags.pop();
-            String nextTag = tags.peek();
-            String bigram = currentTag + " " + nextTag;
-            if (bigrams.containsKey(bigram)) {
-                bigrams.replace(bigram, bigrams.get(bigram) + 1);
+    public static LinkedList<Bigram> getPOSBigrams(String corpus) {
+        HashMap<String, Bigram> bigrams = new HashMap<>();
+        String[] posTags = corpus.split(" |\n");
+        for (int i = 0; i < posTags.length-1; i++) {
+            String firstTag = posTags[i];
+            String secondTag = posTags[i + 1];
+            String hashKey = firstTag + secondTag;
+            if (bigrams.containsKey(hashKey)) {
+                bigrams.get(hashKey).incrementfrequency();
             } else {
-                bigrams.put(bigram, 1);
+                bigrams.put(hashKey, new Bigram(firstTag, secondTag));
             }
         }
-        return bigrams;
+        return  new LinkedList<>(bigrams.values());
     }
 }

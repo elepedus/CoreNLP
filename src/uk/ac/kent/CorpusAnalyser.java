@@ -5,12 +5,12 @@ import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.util.CollectionFactory;
 import edu.stanford.nlp.util.CoreMap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.Buffer;
 import java.util.*;
 
 /**
@@ -18,16 +18,20 @@ import java.util.*;
  */
 public class CorpusAnalyser {
     public static void main(String[] args) {
-
         String inputPath = "build/classes/main/sherlock.txt";
         String POSPatternsOutputPath = "POSTaggedSherlock";
         String sortedPOSPatternsOutputPath = POSPatternsOutputPath + "-sorted";
-        savePOSTagsToFile(inputPath, POSPatternsOutputPath);
+        String bigramOutputPath = "sherlockBigrams";
+
+
+        writePOSTagsToFile(inputPath, POSPatternsOutputPath);
         LinkedList<String> sortedPOSPatterns = getSortedLinesFromFile(POSPatternsOutputPath);
-        writeLineCollectionToFile(sortedPOSPatterns,sortedPOSPatternsOutputPath);
+        writeLineCollectionToFile(sortedPOSPatterns, sortedPOSPatternsOutputPath);
+        HashMap<String, Integer> bigrams = getPOSBigramsFromFile(POSPatternsOutputPath);
+        writePOSBigramsToFile(bigrams, bigramOutputPath);
     }
 
-    public static void savePOSTagsToFile(String inputPath, String outputPath) {
+    public static void writePOSTagsToFile(String inputPath, String outputPath) {
 
         try {
             PrintWriter output = IOUtils.getPrintWriter(outputPath);
@@ -84,10 +88,41 @@ public class CorpusAnalyser {
     public static void writeLineCollectionToFile(Collection<String> lines, String outputPath) {
         try {
             PrintWriter writer = IOUtils.getPrintWriter(outputPath);
-            writer.print(String.join("\n",lines));
+            writer.print(String.join("\n", lines));
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void writePOSBigramsToFile(HashMap<String, Integer> bigrams, String outputPath) {
+        LinkedList<String> lines = new LinkedList<>();
+        for (String bigram : bigrams.keySet()) {
+            lines.push(bigrams.get(bigram) + " " + bigram);
+        }
+        lines.sort(null);
+        writeLineCollectionToFile(lines, outputPath);
+    }
+
+    public static HashMap<String, Integer> getPOSBigramsFromFile(String inputPath) {
+        String corpus = IOUtils.slurpFileNoExceptions(inputPath);
+        HashMap<String, Integer> bigrams = getPOSBigrams(corpus);
+        return bigrams;
+    }
+
+    public static HashMap<String, Integer> getPOSBigrams(String corpus) {
+        HashMap<String, Integer> bigrams = new HashMap<>();
+        LinkedList<String> tags = new LinkedList<>(Arrays.asList(corpus.split(" |\n")));
+        while (tags.size() > 1) {
+            String currentTag = tags.pop();
+            String nextTag = tags.peek();
+            String bigram = currentTag + " " + nextTag;
+            if (bigrams.containsKey(bigram)) {
+                bigrams.replace(bigram, bigrams.get(bigram) + 1);
+            } else {
+                bigrams.put(bigram, 1);
+            }
+        }
+        return bigrams;
     }
 }

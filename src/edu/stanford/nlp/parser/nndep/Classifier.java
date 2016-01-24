@@ -666,7 +666,7 @@ public class Classifier {
         .currentTimeMillis() - startTime) / 1000.0 + " (s)");
   }
 
-  double[] computeScores(int[] feature) {
+  public double[] computeScores(int[] feature) {
     return computeScores(feature, preMap);
   }
 

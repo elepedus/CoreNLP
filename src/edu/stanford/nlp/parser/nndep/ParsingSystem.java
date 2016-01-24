@@ -32,7 +32,8 @@ public abstract class ParsingSystem {
    */
   protected final String rootLabel;
 
-  protected List<String> labels, transitions;
+  protected List<String> labels;
+  public List<String> transitions;
 
   /**
    * Generate all possible transitions which this parsing system can
@@ -83,7 +84,7 @@ public abstract class ParsingSystem {
    * Determine if the given configuration corresponds to a parser which
    * has completed its parse.
    */
-  abstract boolean isTerminal(Configuration c);
+  public abstract boolean isTerminal(Configuration c);
 
   /**
    * Return the number of transitions.

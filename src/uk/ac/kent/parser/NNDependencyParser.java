@@ -7,6 +7,7 @@ import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.StringUtils;
 
 import java.util.Properties;
+import java.util.Random;
 
 /**
  * Created by elepedus on 23/01/2016.
@@ -19,7 +20,6 @@ public class NNDependencyParser extends DependencyParser {
     }
 
     protected DependencyTree predictInner(CoreMap sentence) {
-        labelIDs.put("UNKNOWN", Integer.MAX_VALUE);
 
         int numTrans = system.numTransitions();
 
@@ -36,9 +36,16 @@ public class NNDependencyParser extends DependencyParser {
                     optTrans = system.transitions.get(j);
                 }
             }
+
+            //simulated failure to predict an optimal transition rule
+            //We make sure that we don't replace shift transitions, as a right
+            //arc requires at least two words on the stack.
+            Random random = new Random();
+            if (random.nextBoolean() && !optTrans.equals("S")) optTrans = null;
+
             // Allow partial parsing
             if (optTrans == null){
-                optTrans = "R(UNKNOWN)";
+                optTrans = "R(root)";
             }
             system.apply(c, optTrans);
         }

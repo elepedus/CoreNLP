@@ -19,6 +19,8 @@ public class NNDependencyParser extends DependencyParser {
     }
 
     protected DependencyTree predictInner(CoreMap sentence) {
+        labelIDs.put("UNKNOWN", Integer.MAX_VALUE);
+
         int numTrans = system.numTransitions();
 
         Configuration c = system.initialConfiguration(sentence);
@@ -33,6 +35,10 @@ public class NNDependencyParser extends DependencyParser {
                     optScore = scores[j];
                     optTrans = system.transitions.get(j);
                 }
+            }
+            // Allow partial parsing
+            if (optTrans == null){
+                optTrans = "R(UNKNOWN)";
             }
             system.apply(c, optTrans);
         }

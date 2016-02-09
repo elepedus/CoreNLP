@@ -90,7 +90,7 @@ public class DependencyParser {
    */
   protected Map<String, Integer> wordIDs, posIDs, labelIDs;
 
-  private List<Integer> preComputed;
+  protected List<Integer> preComputed;
 
   /**
    * Given a particular parser configuration, this classifier will
@@ -204,12 +204,14 @@ public class DependencyParser {
   protected int[] getFeatureArray(Configuration c) {
     int[] feature = new int[config.numTokens];  // positions 0-17 hold fWord, 18-35 hold fPos, 36-47 hold fLabel
 
+    // feature based on the words on the stack (last 3 of the stack)
     for (int j = 2; j >= 0; --j) {
       int index = c.getStack(j);
       feature[2-j] = getWordID(c.getWord(index));
       feature[POS_OFFSET + (2-j)] = getPosID(c.getPOS(index));
     }
 
+    // feature based on the words in the buffer (first of the buffer)
     for (int j = 0; j <= 2; ++j) {
       int index = c.getBuffer(j);
       feature[3 + j] = getWordID(c.getWord(index));
@@ -218,7 +220,7 @@ public class DependencyParser {
 
     for (int j = 0; j <= 1; ++j) {
       int k = c.getStack(j);
-
+    // features based on the current parse tree
       int index = c.getLeftChild(k);
       feature[STACK_OFFSET + j * STACK_NUMBER] = getWordID(c.getWord(index));
       feature[POS_OFFSET + STACK_OFFSET + j * STACK_NUMBER] = getPosID(c.getPOS(index));

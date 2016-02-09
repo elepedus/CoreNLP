@@ -102,7 +102,7 @@ public class DependencyParser {
   protected Classifier classifier;
   protected ParsingSystem system;
 
-  protected final Config config;
+  public final Config config;
 
   /**
    * Language used to generate

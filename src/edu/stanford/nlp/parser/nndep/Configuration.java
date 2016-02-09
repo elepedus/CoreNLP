@@ -184,6 +184,10 @@ public class Configuration {
     return getRightChild(k, 1);
   }
 
+  public int getChildCount(int k) {
+    return getRightChild(k) + getLeftChild(k);
+  }
+
 
   public boolean hasOtherChild(int k, DependencyTree goldTree) {
     for (int i = 1; i <= tree.n; ++i)

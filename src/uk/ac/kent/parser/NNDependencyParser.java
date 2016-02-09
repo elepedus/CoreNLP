@@ -126,6 +126,7 @@ public class NNDependencyParser extends DependencyParser {
     public static void main(String[] args) {
         Properties props = StringUtils.argsToProperties(args, numArgs);
         DependencyParser parser = new NNDependencyParser(props);
+        parser.config.maxIter = 1000;
         run(props, parser);
     }
 
@@ -176,10 +177,25 @@ public class NNDependencyParser extends DependencyParser {
     }
 
     public String getOraclePrediction(Configuration c) {
-        if (c.getStackSize() == 3 || c.getBufferSize() == 0) {
+        int w1 = c.getStack(1);
+        int w2 = c.getStack(0);
+        // If we only have ROOT on the stack and the buffer is not empty, SHIFT
+        // If we only have 2 words on the stack and the buffer is not empty, SHIFT
+        // If we have 3 words on the stack and the first word doesn't have another child, R(root)
+        // If we have 3 words on the stack and the second word doesn't have another child, L(root)
+        // If the buffer is empty and we only have 2 words on the stack, R(root)
+
+        if (c.getStackSize() < 3) {
+            if (c.getBufferSize() > 0) {
+                return "S";
+            } else {
+                return "R(ROOT)";
+            }
+        } else if (c.getChildCount(w1) < 1) {
             return "R(ROOT)";
-        } else {
-            return "S";
+        } else if (c.getChildCount(w2) < 1) {
+            return "L(ROOT)";
         }
+        return null;
     }
 }

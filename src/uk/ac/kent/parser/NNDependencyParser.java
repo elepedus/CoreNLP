@@ -1,5 +1,6 @@
 package uk.ac.kent.parser;
 
+import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.parser.nndep.*;
 import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.stats.Counters;
@@ -7,10 +8,16 @@ import edu.stanford.nlp.stats.IntCounter;
 import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.StringUtils;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * Created by elepedus on 23/01/2016.
@@ -40,19 +47,24 @@ public class NNDependencyParser extends DependencyParser {
                 }
             }
 
-//            //simulated failure to predict an optimal transition rule
-//            //We make sure that we don't replace shift transitions, as a right
-//            //arc requires at least two words on the stack.
-//            Random random = new Random();
-//            if (random.nextBoolean() && !optTrans.equals("S")) optTrans = null;
-//
-//            // Allow partial parsing
-//            if (optTrans == null) {
-//                optTrans = "R(root)";
-//            }
+            logPlaceholderRootTransitions(c, getFeatureArray(c), optTrans);
             system.apply(c, optTrans);
         }
+        logPlaceholderRootTransitions(c, getFeatureArray(c), "FINISH");
         return c.tree;
+    }
+
+    private void logPlaceholderRootTransitions(Configuration configuration, int[] featureArray, String transition) {
+        ParserLogEntry entry = new ParserLogEntry(configuration,featureArray,transition);
+
+        Yaml yaml = new Yaml();
+        String outputPath = "parseLog.yaml";
+        try {
+            PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputPath, true)));
+            yaml.dump(entry, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -126,7 +138,7 @@ public class NNDependencyParser extends DependencyParser {
     public static void main(String[] args) {
         Properties props = StringUtils.argsToProperties(args, numArgs);
         DependencyParser parser = new NNDependencyParser(props);
-        parser.config.maxIter = 1000;
+        parser.config.maxIter = 1000; // Manual override to speed up training in development
         run(props, parser);
     }
 

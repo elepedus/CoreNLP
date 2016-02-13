@@ -9,7 +9,7 @@ import java.util.List;
  * Created by elepedus on 10/02/2016.
  */
 public class ParserLogEntry {
-    public int[] features;
+    public List<Integer> features;
     public String transition;
     public String[] stackWords;
     public String[] stackPOS;
@@ -22,14 +22,14 @@ public class ParserLogEntry {
 
     }
 
-    public ParserLogEntry(Configuration configuration, int[] featureArray, String transition) {
+    public ParserLogEntry(Configuration configuration, List<Integer> features, String transition) {
         stackWords = configuration.getStackWords();
         stackPOS = configuration.getStackPOSTags();
         bufferWords = configuration.getBufferWords();
         bufferPOS = configuration.getBufferPOSTags();
         arcs = configuration.getDependencyArcs();
         partOfSpeechArcs = configuration.getPOSDependencyArcs();
-        features = featureArray;
+        this.features = features;
         this.transition = transition;
     }
 

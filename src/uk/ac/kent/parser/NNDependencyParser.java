@@ -1,6 +1,5 @@
 package uk.ac.kent.parser;
 
-import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.parser.nndep.*;
 import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.stats.Counters;
@@ -15,7 +14,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Random;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -47,21 +45,26 @@ public class NNDependencyParser extends DependencyParser {
                 }
             }
 
-            logPlaceholderRootTransitions(c, getFeatureArray(c), optTrans);
+            logPlaceholderRootTransitions(c, getFeatures(c), optTrans);
+
             system.apply(c, optTrans);
         }
-        logPlaceholderRootTransitions(c, getFeatureArray(c), "FINISH");
+        logPlaceholderRootTransitions(c, getFeatures(c), "FINISH");
+
         return c.tree;
     }
 
-    private void logPlaceholderRootTransitions(Configuration configuration, int[] featureArray, String transition) {
+    private void logPlaceholderRootTransitions(Configuration configuration, List<Integer> featureArray, String transition) {
         ParserLogEntry entry = new ParserLogEntry(configuration,featureArray,transition);
 
         Yaml yaml = new Yaml();
         String outputPath = "parseLog.yaml";
         try {
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputPath, true)));
+            writer.println("---");
             yaml.dump(entry, writer);
+            writer.println("---");
+
         } catch (IOException e) {
             e.printStackTrace();
         }

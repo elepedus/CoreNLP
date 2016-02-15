@@ -45,11 +45,12 @@ public class NNDependencyParser extends DependencyParser {
                 }
             }
 
-            logPlaceholderRootTransitions(c, getFeatures(c), optTrans);
+            if (!classifier.isTraining) {
+                logPlaceholderRootTransitions(c, getFeatures(c), optTrans);
+            }
 
             system.apply(c, optTrans);
         }
-        logPlaceholderRootTransitions(c, getFeatures(c), "FINISH");
 
         return c.tree;
     }
@@ -63,8 +64,7 @@ public class NNDependencyParser extends DependencyParser {
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputPath, true)));
             writer.println("---");
             yaml.dump(entry, writer);
-            writer.println("---");
-
+            writer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

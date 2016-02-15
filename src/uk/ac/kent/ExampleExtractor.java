@@ -96,4 +96,8 @@ public class ExampleExtractor {
             return stackSize >= 2;
         }
     }
+
+    public Dataset getDataset() {
+        return dataset;
+    }
 }

@@ -3,6 +3,7 @@ package uk.ac.kent.parser;
 import edu.stanford.nlp.parser.nndep.Configuration;
 import edu.stanford.nlp.parser.nndep.DependencyTree;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,4 +34,11 @@ public class ParserLogEntry {
         this.transition = transition;
     }
 
+    public String[] getTopTwoPOS() {
+
+        String[] posArray = new String[2];
+        posArray[0] = stackPOS[stackPOS.length - 2];
+        posArray[1] = stackPOS[stackPOS.length - 1];
+        return posArray;
+    }
 }

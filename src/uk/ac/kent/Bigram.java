@@ -4,14 +4,14 @@ package uk.ac.kent;
  * Utility class to encapsulate a bigram and associated data
  */
 public class Bigram implements Comparable {
-    private String first;
-    private String second;
-    private int frequency;
+    public String first;
+    public String second;
+    public int frequency;
 
     /**
      * Initialise a bigram. Frequency defaults to 1.
      *
-     * @param firstItem First item of the bigram
+     * @param firstItem  First item of the bigram
      * @param secondItem Second item of the bigram
      */
     public Bigram(String firstItem, String secondItem) {
@@ -21,9 +21,9 @@ public class Bigram implements Comparable {
     /**
      * Initialise a bigram specifying the frequency
      *
-     * @param firstItem First item of the bigram
+     * @param firstItem  First item of the bigram
      * @param secondItem Second item of the bigram
-     * @param frequency The observed frequency of the bigram
+     * @param frequency  The observed frequency of the bigram
      */
     public Bigram(String firstItem, String secondItem, int frequency) {
         this.first = firstItem;
@@ -57,5 +57,13 @@ public class Bigram implements Comparable {
             return 1;
         }
         return 0;
+    }
+
+    public boolean exactMatch(String posA, String posB) {
+        return first.equals(posA) && second.equals(posB);
+    }
+
+    public boolean matchPermutations(String a, String b) {
+        return exactMatch(a, b) || exactMatch(b, a);
     }
 }

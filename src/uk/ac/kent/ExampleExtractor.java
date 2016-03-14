@@ -1,11 +1,11 @@
 package uk.ac.kent;
 
 import edu.stanford.nlp.parser.nndep.Dataset;
+import edu.stanford.nlp.scoref.Example;
 import org.yaml.snakeyaml.Yaml;
 import uk.ac.kent.parser.ParserLogEntry;
 
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -26,7 +26,11 @@ public class ExampleExtractor {
             "R(PRN)", "R(TITLE)", "S");
 
     public ExampleExtractor() {
-        logEntries = new LinkedList<ParserLogEntry>();
+        this(new LinkedList<>());
+    }
+
+    public ExampleExtractor(LinkedList<ParserLogEntry> logEntries) {
+        this.logEntries = logEntries;
         yaml = new Yaml();
         dataset = new Dataset(48, 43);
     }
@@ -90,7 +94,7 @@ public class ExampleExtractor {
             // Dependent is not ROOT
             return stackSize > 2;
         } else {
-            if (stackSize == 2 && bufferSize == 0 && candidateTransition.equals("R(ROOT)")){
+            if (stackSize == 2 && bufferSize == 0 && candidateTransition.equals("R(ROOT)")) {
                 return true;
             }
             return stackSize >= 2;

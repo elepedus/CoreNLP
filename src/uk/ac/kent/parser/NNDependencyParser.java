@@ -141,7 +141,7 @@ public class NNDependencyParser extends DependencyParser {
     public static void main(String[] args) {
         Properties props = StringUtils.argsToProperties(args, numArgs);
         DependencyParser parser = new NNDependencyParser(props);
-        parser.config.maxIter = 1000; // Manual override to speed up training in development
+        parser.config.maxIter = 100; // Manual override to speed up training in development
         run(props, parser);
     }
 

@@ -1,19 +1,25 @@
 package uk.ac.kent;
 
 import edu.stanford.nlp.io.IOUtils;
+import edu.stanford.nlp.util.Heap;
 import org.yaml.snakeyaml.Yaml;
 import sun.awt.image.ImageWatched;
 import uk.ac.kent.parser.ParserLogEntry;
 
+import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by elepedus on 18/02/2016.
  */
+@SuppressWarnings("Duplicates")
 public class ParserLogAnalyser {
-    private List<ParserLogEntry> logEntries;
+    private LinkedList<ParserLogEntry> logEntries;
     private Yaml yaml;
+    private LinkedList<Bigram> bigrams;
 
     public ParserLogAnalyser() {
         logEntries = new LinkedList<ParserLogEntry>();
@@ -24,9 +30,72 @@ public class ParserLogAnalyser {
         String inputPath = "parseLog.yaml";
         ParserLogAnalyser analyser = new ParserLogAnalyser();
         analyser.loadLogEntries(inputPath);
-        LinkedList<Bigram> bigrams = analyser.extractPOSBigramFrequencies();
-        analyser.writePOSBigramHistogram(bigrams, "POSBigramHistogram.txt");
+        analyser.bigrams = analyser.extractPOSBigramFrequencies();
+        writePOSBigramHistogram(analyser.bigrams, "POSBigramHistogram.txt");
+        analyser.modifyParseDecisions();
+        analyser.saveExamplesToFile("trainingExamples.yaml");
 
+    }
+
+    private void modifyParseDecisions() {
+        for (ParserLogEntry entry : logEntries) {
+            modifyParseDecision(entry);
+        }
+    }
+
+    private void modifyParseDecision(ParserLogEntry entry) {
+        if (entry.stackPOS.length > 1) {
+            String[] partsOfSpeech = entry.getTopTwoPOS();
+            String first = partsOfSpeech[0];
+            String second = partsOfSpeech[1];
+            TreeMap<String, Float> probabilities = getArcProbabilities(first, second);
+            Random r = new Random();
+            float roll = r.nextFloat();
+            System.out.print("StackPOS: " + entry.stackPOS + " Transition " + entry.transition);
+            if (roll < probabilities.firstEntry().getValue()) {
+                entry.transition = probabilities.firstKey();
+                System.out.println(" changed to " + entry.transition);
+            } else if (roll < probabilities.firstEntry().getValue() + probabilities.lastEntry().getValue()) {
+                entry.transition = probabilities.lastKey();
+                System.out.println(" changed to " + entry.transition);
+            } else {
+                System.out.println(" not changed");
+            }
+        }
+    }
+
+    private TreeMap<String, Float> getArcProbabilities(String posA, String posB) {
+        int rFrequency = getArcFrequency(posA, posB);
+        int lFrequency = getArcFrequency(posB, posA);
+        float total = rFrequency + lFrequency;
+        TreeMap<String, Float> probabilities = new TreeMap<>();
+        probabilities.put("R(ROOT)", rFrequency / total);
+        probabilities.put("L(ROOT)", lFrequency / total);
+        return probabilities;
+    }
+
+    private int getArcFrequency(String from, String to) {
+        Optional result = bigrams.stream()
+                .filter(x -> x.exactMatch(from, to))
+                .findFirst();
+        if (result.isPresent()) {
+            Bigram b = (Bigram) result.get();
+            return b.getFrequency();
+        } else return 0;
+    }
+
+
+    public void saveExamplesToFile(String outputPath) {
+        try {
+            PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputPath, true)));
+            for (ParserLogEntry entry : logEntries) {
+                writer.println("---");
+                yaml.dump(entry, writer);
+            }
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void loadLogEntries(String inputPath) {

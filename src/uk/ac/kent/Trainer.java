@@ -32,7 +32,7 @@ public class Trainer {
      * @param args
      */
     public static void main(String[] args) {
-        Trainer trainer = new Trainer("trainingExamples.yaml", "training/experiment1/modelOutputFile.txt.gz");
+        Trainer trainer = new Trainer("training/experiment2/trainingExamples.yaml", "training/experiment2/modelOutputFile.txt.gz");
     }
 
     public Trainer(String parseLogPath, String modelPath) {

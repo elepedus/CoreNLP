@@ -27,13 +27,13 @@ public class ParserLogAnalyser {
     }
 
     public static void main(String[] args) {
-        String inputPath = "parseLog.yaml";
+        String inputPath = "training/experiment2/parseLog.yaml";
         ParserLogAnalyser analyser = new ParserLogAnalyser();
         analyser.loadLogEntries(inputPath);
         analyser.bigrams = analyser.extractPOSBigramFrequencies();
-        writePOSBigramHistogram(analyser.bigrams, "POSBigramHistogram.txt");
+        writePOSBigramHistogram(analyser.bigrams, "training/experiment2/POSBigramHistogram.txt");
         analyser.modifyParseDecisions();
-        analyser.saveExamplesToFile("trainingExamples.yaml");
+        analyser.saveExamplesToFile("training/experiment2/trainingExamples.yaml");
 
     }
 
@@ -69,8 +69,8 @@ public class ParserLogAnalyser {
         int lFrequency = getArcFrequency(posB, posA);
         float total = rFrequency + lFrequency;
         TreeMap<String, Float> probabilities = new TreeMap<>();
-        probabilities.put("R(ROOT)", rFrequency / total);
-        probabilities.put("L(ROOT)", lFrequency / total);
+        probabilities.put("R(PARSED)", rFrequency / total);
+        probabilities.put("L(PARSED)", lFrequency / total);
         return probabilities;
     }
 

@@ -83,7 +83,9 @@ public class DependencyParser {
    *
    * @see #genDictionaries(java.util.List, java.util.List)
    */
-  private List<String> knownWords, knownPos, knownLabels;
+  protected List<String> knownWords;
+  protected List<String> knownPos;
+  protected List<String> knownLabels;
 
   /**
    * Mapping from word / POS / dependency relation label to integer ID
@@ -309,7 +311,7 @@ public class DependencyParser {
    * continuous range of integers; all IDs 0 <= ID < n_w are word IDs,
    * all IDs n_w <= ID < n_w + n_pos are POS tag IDs, and so on.
    */
-  private void generateIDs() {
+  protected void generateIDs() {
     wordIDs = new HashMap<>();
     posIDs = new HashMap<>();
     labelIDs = new HashMap<>();
@@ -328,7 +330,7 @@ public class DependencyParser {
    * dependency relation labels observed. Prepare other structures
    * which support word / POS / label lookup at train- / run-time.
    */
-  private void genDictionaries(List<CoreMap> sents, List<DependencyTree> trees) {
+  protected void genDictionaries(List<CoreMap> sents, List<DependencyTree> trees) {
     // Collect all words (!), etc. in lists, tacking on one sentence
     // after the other
     List<String> word = new ArrayList<>();

@@ -1,5 +1,7 @@
 package uk.ac.kent.parser;
 
+import edu.stanford.nlp.ling.CoreAnnotations;
+import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.parser.nndep.*;
 import edu.stanford.nlp.stats.Counter;
 import edu.stanford.nlp.stats.Counters;
@@ -11,9 +13,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -59,7 +59,7 @@ public class NNDependencyParser extends DependencyParser {
         ParserLogEntry entry = new ParserLogEntry(configuration,featureArray,transition);
 
         Yaml yaml = new Yaml();
-        String outputPath = "parseLog.yaml";
+        String outputPath = "training/experiment2/parseLog.yaml";
         try {
             PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputPath, true)));
             writer.println("---");
@@ -191,6 +191,62 @@ public class NNDependencyParser extends DependencyParser {
         return ret;
     }
 
+    /**
+     * Scan a corpus and store all words, part-of-speech tags, and
+     * dependency relation labels observed. Prepare other structures
+     * which support word / POS / label lookup at train- / run-time.
+     */
+    @Override
+    protected void genDictionaries(List<CoreMap> sents, List<DependencyTree> trees) {
+        // Collect all words (!), etc. in lists, tacking on one sentence
+        // after the other
+        List<String> word = new ArrayList<>();
+        List<String> pos = new ArrayList<>();
+        List<String> label = new ArrayList<>();
+
+        for (CoreMap sentence : sents) {
+            List<CoreLabel> tokens = sentence.get(CoreAnnotations.TokensAnnotation.class);
+
+            for (CoreLabel token : tokens) {
+                word.add(token.word());
+                pos.add(token.tag());
+            }
+        }
+
+        String rootLabel = "ROOT";
+        label.add("UNKNOWN");
+        label.add("PARSED");
+
+        // Generate "dictionaries," possibly with frequency cutoff
+        knownWords = Util.generateDict(word, config.wordCutOff);
+        knownPos = Util.generateDict(pos);
+        knownLabels = Util.generateDict(label);
+        knownLabels.add(0, rootLabel);
+
+        // Avoid the case that rootLabel equals to one of the other labels
+        for (int k = 1; k < knownLabels.size(); ++ k)
+            if (knownLabels.get(k).equals(rootLabel)) {
+                knownLabels.remove(k);
+                break;
+            }
+
+        knownWords.add(0, Config.UNKNOWN);
+        knownWords.add(1, Config.NULL);
+        knownWords.add(2, Config.ROOT);
+
+        knownPos.add(0, Config.UNKNOWN);
+        knownPos.add(1, Config.NULL);
+        knownPos.add(2, Config.ROOT);
+
+        knownLabels.add(0, Config.NULL);
+        generateIDs();
+
+        System.err.println(Config.SEPARATOR);
+        System.err.println("#Word: " + knownWords.size());
+        System.err.println("#POS:" + knownPos.size());
+        System.err.println("#Label: " + knownLabels.size());
+    }
+
     public String getOraclePrediction(Configuration c) {
         int w1 = c.getStack(1);
         int w2 = c.getStack(0);
@@ -204,12 +260,12 @@ public class NNDependencyParser extends DependencyParser {
             if (c.getBufferSize() > 0) {
                 return "S";
             } else {
-                return "R(ROOT)";
+                return "R(UNKNOWN)";
             }
         } else if (c.getChildCount(w1) < 1) {
-            return "R(ROOT)";
+            return "R(UNKNOWN)";
         } else if (c.getChildCount(w2) < 1) {
-            return "L(ROOT)";
+            return "L(UNKNOWN)";
         }
         return null;
     }

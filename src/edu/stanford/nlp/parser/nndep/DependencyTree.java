@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class DependencyTree {
 
-  int n;
+  public int n;
   List<Integer> head;
   List<String> label;
   private int counter;

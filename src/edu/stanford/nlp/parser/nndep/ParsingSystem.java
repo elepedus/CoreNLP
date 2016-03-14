@@ -32,14 +32,14 @@ public abstract class ParsingSystem {
    */
   protected final String rootLabel;
 
-  protected List<String> labels;
+  public List<String> labels;
   public List<String> transitions;
 
   /**
    * Generate all possible transitions which this parsing system can
    * take for any given configuration.
    */
-  protected abstract void makeTransitions();
+  public abstract void makeTransitions();
 
   /**
    * Determine whether the given transition is legal for this

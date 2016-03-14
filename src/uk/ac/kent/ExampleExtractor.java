@@ -19,11 +19,7 @@ public class ExampleExtractor {
     private List<ParserLogEntry> logEntries;
     private Yaml yaml;
     private Dataset dataset;
-    private static List<String> transitions = Arrays.asList("L(ROOT)", "L(NMOD)", "L(DEP)", "L(P)", "L(ADV)", "L(PMOD)", "L(OBJ)", "L(COORD)", "L(VC)", "L(PRD)",
-            "L(CONJ)", "L(AMOD)", "L(IM)", "L(OPRD)", "L(NAME)", "L(SUB)", "L(APPO)", "L(PRT)", "L(SUFFIX)", "L(PRN)",
-            "L(TITLE)", "R(ROOT)", "R(NMOD)", "R(DEP)", "R(P)", "R(ADV)", "R(PMOD)", "R(OBJ)", "R(COORD)", "R(VC)",
-            "R(PRD)", "R(CONJ)", "R(AMOD)", "R(IM)", "R(OPRD)", "R(NAME)", "R(SUB)", "R(APPO)", "R(PRT)", "R(SUFFIX)",
-            "R(PRN)", "R(TITLE)", "S");
+    private static List<String> transitions = Arrays.asList("L(ROOT)", "L(UNKNOWN)", "L(PARSED)", "R(ROOT)", "R(UNKNOWN)", "R(PARSED)", "S");
 
     public ExampleExtractor() {
         this(new LinkedList<>());
@@ -32,7 +28,7 @@ public class ExampleExtractor {
     public ExampleExtractor(LinkedList<ParserLogEntry> logEntries) {
         this.logEntries = logEntries;
         yaml = new Yaml();
-        dataset = new Dataset(48, 43);
+        dataset = new Dataset(48, transitions.size());
     }
 
     /**

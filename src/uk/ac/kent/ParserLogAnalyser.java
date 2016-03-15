@@ -48,19 +48,19 @@ public class ParserLogAnalyser {
             String[] partsOfSpeech = entry.getTopTwoPOS();
             String first = partsOfSpeech[0];
             String second = partsOfSpeech[1];
-            TreeMap<String, Float> probabilities = getArcProbabilities(first, second);
-            Random r = new Random();
-            float roll = r.nextFloat();
-            System.out.print("StackPOS: " + entry.stackPOS + " Transition " + entry.transition);
-            if (roll < probabilities.firstEntry().getValue()) {
-                entry.transition = probabilities.firstKey();
-                System.out.println(" changed to " + entry.transition);
-            } else if (roll < probabilities.firstEntry().getValue() + probabilities.lastEntry().getValue()) {
-                entry.transition = probabilities.lastKey();
-                System.out.println(" changed to " + entry.transition);
-            } else {
-                System.out.println(" not changed");
-            }
+            System.out.print(entry.transition + " -> ");
+            entry.transition = getArc(first, second);
+            System.out.println(entry.transition);
+        }
+    }
+
+    private String getArc(String posA, String posB) {
+        int rFrequency = getArcFrequency(posA, posB);
+        int lFrequency = getArcFrequency(posB, posA);
+        if (rFrequency > lFrequency) {
+            return "R(PARSED)";
+        } else {
+            return "L(PARSED)";
         }
     }
 
@@ -111,7 +111,8 @@ public class ParserLogAnalyser {
     }
 
     public LinkedList<Bigram> extractPOSBigramFrequencies() {
-        HashMap<String, Bigram> bigrams = new HashMap<>();
+        String corpus = IOUtils.slurpFileNoExceptions("POSTaggedSherlock");
+        HashMap<String, Bigram> bigrams = CorpusAnalyser.getStringBigramHashMap(corpus);
         for (ParserLogEntry logEntry : logEntries) {
             for (int i = 0; i < logEntry.stackPOS.length - 1; i++) {
                 String firstTag = logEntry.stackPOS[i];

@@ -110,6 +110,11 @@ public class CorpusAnalyser {
     }
 
     public static LinkedList<Bigram> getPOSBigrams(String corpus) {
+        HashMap<String, Bigram> bigrams = getStringBigramHashMap(corpus);
+        return  new LinkedList<>(bigrams.values());
+    }
+
+    public static HashMap<String, Bigram> getStringBigramHashMap(String corpus) {
         HashMap<String, Bigram> bigrams = new HashMap<>();
         String[] posTags = corpus.split(" |\n");
         for (int i = 0; i < posTags.length-1; i++) {
@@ -122,6 +127,6 @@ public class CorpusAnalyser {
                 bigrams.put(hashKey, new Bigram(firstTag, secondTag));
             }
         }
-        return  new LinkedList<>(bigrams.values());
+        return bigrams;
     }
 }

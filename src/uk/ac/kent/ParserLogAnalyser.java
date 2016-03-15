@@ -20,6 +20,7 @@ public class ParserLogAnalyser {
     private LinkedList<ParserLogEntry> logEntries;
     private Yaml yaml;
     private LinkedList<Bigram> bigrams;
+    private int threshold;
 
     public ParserLogAnalyser() {
         logEntries = new LinkedList<ParserLogEntry>();
@@ -31,6 +32,7 @@ public class ParserLogAnalyser {
         ParserLogAnalyser analyser = new ParserLogAnalyser();
         analyser.loadLogEntries(inputPath);
         analyser.bigrams = analyser.extractPOSBigramFrequencies();
+        analyser.threshold = analyser.bigrams.stream().mapToInt(x -> x.frequency).sum() / 100000;
         writePOSBigramHistogram(analyser.bigrams, "training/experiment2/POSBigramHistogram.txt");
         analyser.modifyParseDecisions();
         analyser.saveExamplesToFile("training/experiment2/trainingExamples.yaml");
@@ -57,7 +59,11 @@ public class ParserLogAnalyser {
     private String getArc(String posA, String posB) {
         int rFrequency = getArcFrequency(posA, posB);
         int lFrequency = getArcFrequency(posB, posA);
-        if (rFrequency > lFrequency) {
+        int sFrequency = bigrams.stream().filter(x -> x.frequency <  threshold).mapToInt(x -> x.frequency).sum();
+
+        if (sFrequency > Integer.max(rFrequency, lFrequency)) {
+            return "S";
+        } else if (rFrequency > lFrequency) {
             return "R(PARSED)";
         } else {
             return "L(PARSED)";

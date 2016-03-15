@@ -113,7 +113,7 @@ public class ParserLogAnalyser {
     public LinkedList<Bigram> extractPOSBigramFrequencies() {
         HashMap<String, Bigram> bigrams = new HashMap<>();
         for (ParserLogEntry logEntry : logEntries) {
-            for (int i = 0; i < logEntry.stackPOS.length - 2; i++) {
+            for (int i = 0; i < logEntry.stackPOS.length - 1; i++) {
                 String firstTag = logEntry.stackPOS[i];
                 String secondTag = logEntry.stackPOS[i + 1];
                 String hashKey = firstTag + secondTag;

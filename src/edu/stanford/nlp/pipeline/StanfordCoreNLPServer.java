@@ -66,7 +66,7 @@ public class StanfordCoreNLPServer implements Runnable {
     defaultProps.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse, depparse, natlog, openie, dcoref");
     defaultProps.setProperty("inputFormat", "text");
     defaultProps.setProperty("outputFormat", "json");
-    defaultProps.setProperty("parse.model", "training/experiment1/modelOutputFile.txt.gz");
+    defaultProps.setProperty("depparse.model", "training/experiment1/modelOutputFile.txt.gz");
 
     // Generate and write a shutdown key
     String tmpDir = System.getProperty("java.io.tmpdir");

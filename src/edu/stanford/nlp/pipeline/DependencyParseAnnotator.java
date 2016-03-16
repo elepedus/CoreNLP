@@ -45,7 +45,7 @@ public class DependencyParseAnnotator extends SentenceAnnotator {
   }
 
   public DependencyParseAnnotator(Properties properties) {
-    String modelPath = PropertiesUtils.getString(properties, "model", "training/experiment2/modelOutputFile.txt.gz");
+    String modelPath = properties.getProperty("model"); //PropertiesUtils.getString(properties, "model", "training/experiment4/modelOutputFile.txt.gz");
     parser = DependencyParser.loadFromModelFile(modelPath, properties);
 
     nThreads = PropertiesUtils.getInt(properties, "testThreads", DEFAULT_NTHREADS);

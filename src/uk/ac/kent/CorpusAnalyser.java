@@ -6,6 +6,7 @@ import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.util.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,11 +17,24 @@ import java.util.*;
  * Analyse a corpus to extract candidate grammar rules
  */
 public class CorpusAnalyser {
+    /**
+     * Explicitly specifies the number of arguments expected with
+     * particular command line options.
+     */
+    protected static final Map<String, Integer> numArgs = new HashMap<>();
+
+    static {
+        numArgs.put("textFile", 1);
+        numArgs.put("outputPath", 1);
+    }
+
     public static void main(String[] args) {
-        String inputPath = "build/classes/main/sherlock.txt";
-        String POSPatternsOutputPath = "POSTaggedSherlock";
-        String sortedPOSPatternsOutputPath = POSPatternsOutputPath + "-sorted";
-        String bigramOutputPath = "sherlockBigrams";
+        Properties props = StringUtils.argsToProperties(args, numArgs);
+        String inputPath = props.getProperty("textFile");
+        String outputPath = props.getProperty("outputPath");
+        String POSPatternsOutputPath = outputPath + "/posPatterns.txt";
+        String sortedPOSPatternsOutputPath = POSPatternsOutputPath + "-sorted.txt";
+        String bigramOutputPath = outputPath + "/bigrams.txt";;
 
 
         writePOSTagsToFile(inputPath, POSPatternsOutputPath);
@@ -97,7 +111,7 @@ public class CorpusAnalyser {
     public static LinkedList<Bigram> getPOSBigramsFromPOSPatternsFile(String inputPath) {
         String corpus = IOUtils.slurpFileNoExceptions(inputPath);
         LinkedList<Bigram> bigrams = getPOSBigrams(corpus);
-        Collections.sort(bigrams,Collections.reverseOrder());
+        Collections.sort(bigrams, Collections.reverseOrder());
         return bigrams;
     }
 
@@ -111,13 +125,13 @@ public class CorpusAnalyser {
 
     public static LinkedList<Bigram> getPOSBigrams(String corpus) {
         HashMap<String, Bigram> bigrams = getStringBigramHashMap(corpus);
-        return  new LinkedList<>(bigrams.values());
+        return new LinkedList<>(bigrams.values());
     }
 
     public static HashMap<String, Bigram> getStringBigramHashMap(String corpus) {
         HashMap<String, Bigram> bigrams = new HashMap<>();
         String[] posTags = corpus.split(" |\n");
-        for (int i = 0; i < posTags.length-1; i++) {
+        for (int i = 0; i < posTags.length - 1; i++) {
             String firstTag = posTags[i];
             String secondTag = posTags[i + 1];
             String hashKey = firstTag + secondTag;

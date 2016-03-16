@@ -2,6 +2,7 @@ package uk.ac.kent;
 
 import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.util.Heap;
+import edu.stanford.nlp.util.StringUtils;
 import org.yaml.snakeyaml.Yaml;
 import sun.awt.image.ImageWatched;
 import uk.ac.kent.parser.ParserLogEntry;
@@ -22,20 +23,32 @@ public class ParserLogAnalyser {
     private LinkedList<Bigram> bigrams;
     private int threshold;
 
+    /**
+     * Explicitly specifies the number of arguments expected with
+     * particular command line options.
+     */
+    protected static final Map<String, Integer> numArgs = new HashMap<>();
+
+    static {
+        numArgs.put("path", 1);
+    }
+
     public ParserLogAnalyser() {
-        logEntries = new LinkedList<ParserLogEntry>();
+        logEntries = new LinkedList<>();
         yaml = new Yaml();
     }
 
     public static void main(String[] args) {
-        String inputPath = "training/experiment2/parseLog.yaml";
+        Properties props = StringUtils.argsToProperties(args, numArgs);
+        String path = props.getProperty("path");
+        String inputPath = path + "/parseLog.yaml";
         ParserLogAnalyser analyser = new ParserLogAnalyser();
         analyser.loadLogEntries(inputPath);
-        analyser.bigrams = analyser.extractPOSBigramFrequencies();
+        analyser.bigrams = analyser.extractPOSBigramFrequencies(path + "/posPatterns.txt");
         analyser.threshold = analyser.bigrams.stream().mapToInt(x -> x.frequency).sum() / 100000;
-        writePOSBigramHistogram(analyser.bigrams, "training/experiment2/POSBigramHistogram.txt");
+        writePOSBigramHistogram(analyser.bigrams, path + "/POSBigramHistogram.txt");
         analyser.modifyParseDecisions();
-        analyser.saveExamplesToFile("training/experiment2/trainingExamples.yaml");
+        analyser.saveExamplesToFile(path + "/trainingExamples.yaml");
 
     }
 
@@ -59,7 +72,7 @@ public class ParserLogAnalyser {
     private String getArc(String posA, String posB) {
         int rFrequency = getArcFrequency(posA, posB);
         int lFrequency = getArcFrequency(posB, posA);
-        int sFrequency = bigrams.stream().filter(x -> x.frequency <  threshold).mapToInt(x -> x.frequency).sum();
+        int sFrequency = bigrams.stream().filter(x -> x.frequency < threshold).mapToInt(x -> x.frequency).sum();
 
         if (sFrequency > Integer.max(rFrequency, lFrequency)) {
             return "S";
@@ -116,8 +129,8 @@ public class ParserLogAnalyser {
         }
     }
 
-    public LinkedList<Bigram> extractPOSBigramFrequencies() {
-        String corpus = IOUtils.slurpFileNoExceptions("POSTaggedSherlock");
+    public LinkedList<Bigram> extractPOSBigramFrequencies(String posTaggedCorpus) {
+        String corpus = IOUtils.slurpFileNoExceptions(posTaggedCorpus);
         HashMap<String, Bigram> bigrams = CorpusAnalyser.getStringBigramHashMap(corpus);
         for (ParserLogEntry logEntry : logEntries) {
             for (int i = 0; i < logEntry.stackPOS.length - 1; i++) {

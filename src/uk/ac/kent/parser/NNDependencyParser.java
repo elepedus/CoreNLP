@@ -23,8 +23,11 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class NNDependencyParser extends DependencyParser {
 
+    String logOutputPath;
+
     public NNDependencyParser(Properties properties) {
         super(properties);
+        logOutputPath = properties.getProperty("logOutputPath", null);
     }
 
     protected DependencyTree predictInner(CoreMap sentence) {
@@ -45,7 +48,7 @@ public class NNDependencyParser extends DependencyParser {
                 }
             }
 
-            if (!classifier.isTraining) {
+            if (!classifier.isTraining && logOutputPath != null) {
                 logPlaceholderRootTransitions(c, getFeatures(c), optTrans);
             }
 
@@ -56,12 +59,11 @@ public class NNDependencyParser extends DependencyParser {
     }
 
     private void logPlaceholderRootTransitions(Configuration configuration, List<Integer> featureArray, String transition) {
-        ParserLogEntry entry = new ParserLogEntry(configuration,featureArray,transition);
+        ParserLogEntry entry = new ParserLogEntry(configuration, featureArray, transition);
 
         Yaml yaml = new Yaml();
-        String outputPath = "training/experiment2/parseLog.yaml";
         try {
-            PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputPath, true)));
+            PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(logOutputPath, true)));
             writer.println("---");
             yaml.dump(entry, writer);
             writer.close();
@@ -224,7 +226,7 @@ public class NNDependencyParser extends DependencyParser {
         knownLabels.add(0, rootLabel);
 
         // Avoid the case that rootLabel equals to one of the other labels
-        for (int k = 1; k < knownLabels.size(); ++ k)
+        for (int k = 1; k < knownLabels.size(); ++k)
             if (knownLabels.get(k).equals(rootLabel)) {
                 knownLabels.remove(k);
                 break;

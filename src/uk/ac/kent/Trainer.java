@@ -3,17 +3,20 @@ package uk.ac.kent;
 import edu.stanford.nlp.io.IOUtils;
 import edu.stanford.nlp.io.RuntimeIOException;
 import edu.stanford.nlp.parser.nndep.*;
+import edu.stanford.nlp.util.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
  * Created by elepedus on 25/01/2016.
  * Trains a dependency parser model
- *
+ * <p>
  * The duplication in this file makes me sick, but I haven't got time to
  * refactor CoreNLP Dependency Parser :(
  */
@@ -28,11 +31,26 @@ public class Trainer {
     private ArrayList<Integer> preComputed;
 
     /**
+     * Explicitly specifies the number of arguments expected with
+     * particular command line options.
+     */
+    protected static final Map<String, Integer> numArgs = new HashMap<>();
+
+    static {
+        numArgs.put("modelPath", 1);
+        numArgs.put("workingPath", 1);
+    }
+
+    /**
      * Parse examples from a modified log file
+     *
      * @param args
      */
     public static void main(String[] args) {
-        Trainer trainer = new Trainer("training/experiment2/trainingExamples.yaml", "training/experiment2/modelOutputFile.txt.gz");
+        Properties props = StringUtils.argsToProperties(args, numArgs);
+        String workingPath = props.getProperty("workingPath");
+        String modelPath = props.getProperty("modelPath", workingPath);
+        Trainer trainer = new Trainer(workingPath + "/trainingExamples.yaml", modelPath + "/modelOutputFile.txt.gz");
     }
 
     public Trainer(String parseLogPath, String modelPath) {

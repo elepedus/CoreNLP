@@ -1239,7 +1239,7 @@ public class DependencyParser {
     run(props, parser);
   }
 
-  protected static void run(Properties props, DependencyParser parser) {
+  public static void run(Properties props, DependencyParser parser) {
     // Train with CoNLL-X data
     if (props.containsKey("trainFile"))
       parser.train(props.getProperty("trainFile"), props.getProperty("devFile"), props.getProperty("model"),

@@ -55,7 +55,7 @@ public class Trainer {
 
     public Trainer(String parseLogPath, String modelPath) {
         config = new Config(new Properties());
-        config.maxIter = 1000;
+        config.maxIter = 100;
         exampleExtractor = new ExampleExtractor();
         exampleExtractor.loadLogEntries(parseLogPath);
         exampleExtractor.extractExamples();

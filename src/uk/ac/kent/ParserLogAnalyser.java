@@ -10,6 +10,7 @@ import uk.ac.kent.parser.ParserLogEntry;
 import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,9 +19,9 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("Duplicates")
 public class ParserLogAnalyser {
-    private LinkedList<ParserLogEntry> logEntries;
+    LinkedList<ParserLogEntry> logEntries;
     private Yaml yaml;
-    private LinkedList<Bigram> bigrams;
+    LinkedList<Bigram> bigrams;
     private int threshold;
 
     /**
@@ -70,8 +71,8 @@ public class ParserLogAnalyser {
     }
 
     private String getArc(String posA, String posB) {
-        int rFrequency = getArcFrequency(posA, posB);
-        int lFrequency = getArcFrequency(posB, posA);
+        int lFrequency = getArcFrequency(posA, posB);
+        int rFrequency = getArcFrequency(posB, posA);
         int sFrequency = bigrams.stream().filter(x -> x.frequency < threshold).mapToInt(x -> x.frequency).sum();
 
         if (sFrequency > Integer.max(rFrequency, lFrequency)) {
@@ -129,9 +130,44 @@ public class ParserLogAnalyser {
         }
     }
 
+    public Bigram getTopBigram() {
+        Optional<Bigram> max = bigrams.stream()
+                .filter(x -> !x.getFirst().equals("-ROOT-")) // we're only interested in bigrams involving non-root POS
+                .max(Comparator.comparing(x -> x.frequency));
+        if (max.isPresent()) {
+            return max.get();
+        }
+        return null;
+    }
+
+    public LinkedList<ParserLogEntry> getMatchingEntries(Bigram bigram) {
+        return logEntries.stream().filter(x -> {
+            if (x.stackPOS.length > 1) {
+                String[] pos = x.getTopTwoPOS();
+                return bigram.exactMatch(pos[0], pos[1]) && !x.transition.contains("PARSED");
+            } else return false;
+        }).collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    public void updateTransitions(LinkedList<ParserLogEntry> entries, String newTransition) {
+        entries.parallelStream().forEach(x ->{
+            x.transition = newTransition;
+        });
+    }
+
+
+    public LinkedList<Bigram> extractPOSBigramFrequencies() {
+        return extractPOSBigramFrequencies(null);
+    }
+
     public LinkedList<Bigram> extractPOSBigramFrequencies(String posTaggedCorpus) {
-        String corpus = IOUtils.slurpFileNoExceptions(posTaggedCorpus);
-        HashMap<String, Bigram> bigrams = CorpusAnalyser.getStringBigramHashMap(corpus);
+        HashMap<String, Bigram> bigrams;
+        if (posTaggedCorpus != null) {
+            String corpus = IOUtils.slurpFileNoExceptions(posTaggedCorpus);
+            bigrams = CorpusAnalyser.getStringBigramHashMap(corpus);
+        } else {
+            bigrams = new HashMap<>();
+        }
         for (ParserLogEntry logEntry : logEntries) {
             for (int i = 0; i < logEntry.stackPOS.length - 1; i++) {
                 String firstTag = logEntry.stackPOS[i];
@@ -146,6 +182,7 @@ public class ParserLogAnalyser {
         }
         return new LinkedList<>(bigrams.values());
     }
+
 
     public static void writePOSBigramHistogram(LinkedList<Bigram> bigrams, String outputPath) {
         LinkedList<String> lines = new LinkedList<>();

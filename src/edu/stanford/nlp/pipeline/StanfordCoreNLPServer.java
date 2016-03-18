@@ -14,8 +14,6 @@ import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.semgrex.SemgrexMatcher;
 import edu.stanford.nlp.semgraph.semgrex.SemgrexPattern;
 import edu.stanford.nlp.util.*;
-import sun.jvm.hotspot.runtime.Thread;
-import sun.jvm.hotspot.runtime.Threads;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -27,7 +25,7 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static edu.stanford.nlp.util.logging.Redwood.Util.*;
+import static edu.stanford.nlp.util.logging.Redwood.Util.log;
 
 /**
  * This class creates a server that runs a new Java annotator in each thread.

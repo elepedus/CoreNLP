@@ -1,18 +1,13 @@
 package uk.ac.kent;
 
 import edu.stanford.nlp.io.IOUtils;
-import edu.stanford.nlp.util.Heap;
 import edu.stanford.nlp.util.StringUtils;
 import org.yaml.snakeyaml.Yaml;
-import sun.awt.image.ImageWatched;
 import uk.ac.kent.parser.ParserLogEntry;
 
-import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by elepedus on 18/02/2016.

@@ -75,7 +75,7 @@ public class ParserFlow {
             processParseLog(parseLogPath, histogramPath, examplesOutputPath);
             train(modelPath, examplesOutputPath);
             test(modelPath, testPath);
-            cleanUp(parseLogPath);
+            cleanUp(parseLogPath, examplesOutputPath);
             restartServer();
             currentIteration++;
             if (currentIteration == maxIterations) done = true;
@@ -96,10 +96,12 @@ public class ParserFlow {
         startServer();
     }
 
-    private void cleanUp(String parseLogPath) {
-        Path path = new File(parseLogPath).toPath();
+    private void cleanUp(String parseLogPath, String examplesOutputPath) {
+        Path logs = new File(parseLogPath).toPath();
+        Path examples = new File(examplesOutputPath).toPath();
         try {
-            Files.deleteIfExists(path);
+            Files.deleteIfExists(logs);
+            Files.deleteIfExists(examples);
         } catch (IOException e) {
             e.printStackTrace();
         }

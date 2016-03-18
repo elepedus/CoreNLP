@@ -2,7 +2,6 @@ package uk.ac.kent;
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLPServer;
 import edu.stanford.nlp.util.StringUtils;
-import sun.jvm.hotspot.runtime.Thread;
 import uk.ac.kent.parser.NNDependencyParser;
 import uk.ac.kent.parser.ParserLogEntry;
 
@@ -31,6 +30,11 @@ public class ParserFlow {
     private int currentIteration;
     private boolean done;
     private int maxIterations = Integer.MAX_VALUE;
+    private StanfordCoreNLPServer server;
+    private HashMap<String, Integer> passHistory;
+    private int currentPassLimit = 1;
+    private int maxPasses = 1;
+
     /**
      * Explicitly specifies the number of arguments expected with
      * particular command line options.
@@ -42,8 +46,6 @@ public class ParserFlow {
         numArgs.put("corpus", 1);
     }
 
-    private StanfordCoreNLPServer server;
-
     public static void main(String[] args) {
         Properties properties = StringUtils.argsToProperties(args, numArgs);
         ParserFlow flow = new ParserFlow(properties.getProperty("path"));
@@ -52,9 +54,9 @@ public class ParserFlow {
     public ParserFlow(String path) {
         modelPath = path + "/model.txt.gz";
         corpusPath = path + "/corpus.txt";
-
         testPath = "training/train.dep";
         currentIteration = 0;
+        passHistory = new HashMap<>();
         done = false;
         ensureModel(modelPath);
         startServer();
@@ -86,8 +88,7 @@ public class ParserFlow {
             server.serverExecutor.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             System.err.println("Tasks Interrupted.");
-        }
-        finally {
+        } finally {
             server.serverExecutor.shutdownNow();
         }
         server.server.stop(0);
@@ -120,8 +121,19 @@ public class ParserFlow {
         ParserLogAnalyser analyser = new ParserLogAnalyser();
         analyser.loadLogEntries(parseLogPath);
         analyser.bigrams = analyser.extractPOSBigramFrequencies();
-        LinkedList<ParserLogEntry> relevantEntries = new LinkedList<>();
-        Bigram topBigram = analyser.getTopBigram();
+        LinkedList<ParserLogEntry> relevantEntries;
+        Bigram topBigram;
+        String key = "";
+        do {
+            topBigram = analyser.getTopBigram();
+            key = topBigram.getFirst() + topBigram.getSecond();
+            int currentCount = passHistory.getOrDefault(key, 0);
+            passHistory.put(key, currentCount + 1);
+            if (currentCount > currentPassLimit) {
+                analyser.bigrams.remove(topBigram);
+            }
+        } while (passHistory.get(key) > currentPassLimit);
+
         do {
             relevantEntries = analyser.getMatchingEntries(topBigram);
             if (relevantEntries.size() == 0) {

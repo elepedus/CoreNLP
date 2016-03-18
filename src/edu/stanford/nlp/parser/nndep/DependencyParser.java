@@ -83,14 +83,16 @@ public class DependencyParser {
    *
    * @see #genDictionaries(java.util.List, java.util.List)
    */
-  private List<String> knownWords, knownPos, knownLabels;
+  protected List<String> knownWords;
+  protected List<String> knownPos;
+  protected List<String> knownLabels;
 
   /**
    * Mapping from word / POS / dependency relation label to integer ID
    */
-  private Map<String, Integer> wordIDs, posIDs, labelIDs;
+  protected Map<String, Integer> wordIDs, posIDs, labelIDs;
 
-  private List<Integer> preComputed;
+  protected List<Integer> preComputed;
 
   /**
    * Given a particular parser configuration, this classifier will
@@ -99,10 +101,10 @@ public class DependencyParser {
    * The {@link edu.stanford.nlp.parser.nndep.Classifier} class
    * handles both training and inference.
    */
-  private Classifier classifier;
-  private ParsingSystem system;
+  protected Classifier classifier;
+  protected ParsingSystem system;
 
-  private final Config config;
+  public final Config config;
 
   /**
    * Language used to generate
@@ -201,15 +203,17 @@ public class DependencyParser {
   private static final int STACK_OFFSET = 6;
   private static final int STACK_NUMBER = 6;
 
-  private int[] getFeatureArray(Configuration c) {
+  protected int[] getFeatureArray(Configuration c) {
     int[] feature = new int[config.numTokens];  // positions 0-17 hold fWord, 18-35 hold fPos, 36-47 hold fLabel
 
+    // feature based on the words on the stack (last 3 of the stack)
     for (int j = 2; j >= 0; --j) {
       int index = c.getStack(j);
       feature[2-j] = getWordID(c.getWord(index));
       feature[POS_OFFSET + (2-j)] = getPosID(c.getPOS(index));
     }
 
+    // feature based on the words in the buffer (first of the buffer)
     for (int j = 0; j <= 2; ++j) {
       int index = c.getBuffer(j);
       feature[3 + j] = getWordID(c.getWord(index));
@@ -218,7 +222,7 @@ public class DependencyParser {
 
     for (int j = 0; j <= 1; ++j) {
       int k = c.getStack(j);
-
+    // features based on the current parse tree
       int index = c.getLeftChild(k);
       feature[STACK_OFFSET + j * STACK_NUMBER] = getWordID(c.getWord(index));
       feature[POS_OFFSET + STACK_OFFSET + j * STACK_NUMBER] = getPosID(c.getPOS(index));
@@ -307,7 +311,7 @@ public class DependencyParser {
    * continuous range of integers; all IDs 0 <= ID < n_w are word IDs,
    * all IDs n_w <= ID < n_w + n_pos are POS tag IDs, and so on.
    */
-  private void generateIDs() {
+  protected void generateIDs() {
     wordIDs = new HashMap<>();
     posIDs = new HashMap<>();
     labelIDs = new HashMap<>();
@@ -326,7 +330,7 @@ public class DependencyParser {
    * dependency relation labels observed. Prepare other structures
    * which support word / POS / label lookup at train- / run-time.
    */
-  private void genDictionaries(List<CoreMap> sents, List<DependencyTree> trees) {
+  protected void genDictionaries(List<CoreMap> sents, List<DependencyTree> trees) {
     // Collect all words (!), etc. in lists, tacking on one sentence
     // after the other
     List<String> word = new ArrayList<>();
@@ -901,7 +905,7 @@ public class DependencyParser {
    * This "inner" method returns a structure unique to this package; use {@link #predict(edu.stanford.nlp.util.CoreMap)}
    * for general parsing purposes.
    */
-  private DependencyTree predictInner(CoreMap sentence) {
+  protected DependencyTree predictInner(CoreMap sentence) {
     int numTrans = system.numTransitions();
 
     Configuration c = system.initialConfiguration(sentence);
@@ -1094,7 +1098,7 @@ public class DependencyParser {
     return las;
   }
 
-  private void parseTextFile(BufferedReader input, PrintWriter output) {
+  protected void parseTextFile(BufferedReader input, PrintWriter output) {
     DocumentPreprocessor preprocessor = new DocumentPreprocessor(input);
     preprocessor.setSentenceFinalPuncWords(config.tlp.sentenceFinalPunctuationWords());
     preprocessor.setEscaper(config.escaper);
@@ -1155,7 +1159,7 @@ public class DependencyParser {
    * Explicitly specifies the number of arguments expected with
    * particular command line options.
    */
-  private static final Map<String, Integer> numArgs = new HashMap<>();
+  protected static final Map<String, Integer> numArgs = new HashMap<>();
   static {
     numArgs.put("textFile", 1);
     numArgs.put("outFile", 1);
@@ -1232,7 +1236,10 @@ public class DependencyParser {
   public static void main(String[] args) {
     Properties props = StringUtils.argsToProperties(args, numArgs);
     DependencyParser parser = new DependencyParser(props);
+    run(props, parser);
+  }
 
+  public static void run(Properties props, DependencyParser parser) {
     // Train with CoNLL-X data
     if (props.containsKey("trainFile"))
       parser.train(props.getProperty("trainFile"), props.getProperty("devFile"), props.getProperty("model"),

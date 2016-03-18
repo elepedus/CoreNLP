@@ -19,11 +19,11 @@ import java.util.List;
 
 public class Dataset {
 
-  int n;
+  public int n;
   final int numFeatures, numLabels;
   final List<Example> examples;
 
-  Dataset(int numFeatures, int numLabels) {
+  public Dataset(int numFeatures, int numLabels) {
     n = 0;
     this.numFeatures = numFeatures;
     this.numLabels = numLabels;

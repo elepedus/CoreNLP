@@ -14,6 +14,8 @@ import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.semgraph.semgrex.SemgrexMatcher;
 import edu.stanford.nlp.semgraph.semgrex.SemgrexPattern;
 import edu.stanford.nlp.util.*;
+import sun.jvm.hotspot.runtime.Thread;
+import sun.jvm.hotspot.runtime.Threads;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -34,7 +36,7 @@ import static edu.stanford.nlp.util.logging.Redwood.Util.*;
 public class StanfordCoreNLPServer implements Runnable {
   protected static int DEFAULT_PORT = 9000;
 
-  protected HttpServer server;
+  public HttpServer server;
   protected int serverPort;
   protected final FileHandler staticPageHandle;
   protected final String shutdownKey;
@@ -47,7 +49,7 @@ public class StanfordCoreNLPServer implements Runnable {
   /**
    * The thread pool for the HTTP server.
    */
-  private final ExecutorService serverExecutor = Executors.newFixedThreadPool(Execution.threads);
+  public final ExecutorService serverExecutor = Executors.newFixedThreadPool(Execution.threads);
   /**
    * To prevent grossly wasteful over-creation of pipeline objects, cache the last
    * few we created, until the garbage collector decides we can kill them.
@@ -66,6 +68,7 @@ public class StanfordCoreNLPServer implements Runnable {
     defaultProps.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse, depparse, natlog, openie, dcoref");
     defaultProps.setProperty("inputFormat", "text");
     defaultProps.setProperty("outputFormat", "json");
+    defaultProps.setProperty("depparse.model", "training/experiment5/model.txt.gz");
 
     // Generate and write a shutdown key
     String tmpDir = System.getProperty("java.io.tmpdir");
@@ -607,6 +610,9 @@ public class StanfordCoreNLPServer implements Runnable {
       port = Integer.parseInt(args[0]);
     }
     StanfordCoreNLPServer server = new StanfordCoreNLPServer(port);
+    if (args.length > 2 && args[1].equals("-model")) {
+      server.defaultProps.setProperty("depparse.model", args[2]);
+    }
     server.run();
   }
 }

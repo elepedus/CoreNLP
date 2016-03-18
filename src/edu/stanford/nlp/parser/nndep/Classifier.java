@@ -71,7 +71,7 @@ public class Classifier {
    * initialized. We use this flag to determine whether calls to
    * {@link #computeCostFunction(int, double, double)}, etc. are valid.
    */
-  private boolean isTraining;
+  public boolean isTraining;
 
   /**
    * All training examples.
@@ -666,7 +666,7 @@ public class Classifier {
         .currentTimeMillis() - startTime) / 1000.0 + " (s)");
   }
 
-  double[] computeScores(int[] feature) {
+  public double[] computeScores(int[] feature) {
     return computeScores(feature, preMap);
   }
 
